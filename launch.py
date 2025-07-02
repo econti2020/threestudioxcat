@@ -299,3 +299,25 @@ if __name__ == "__main__":
             main(args, extras)
     else:
         main(args, extras)
+# Add to imports
+from threestudio.utils.bin_io import load_bin_voxel, save_bin_voxel
+
+# In the parser section:
+parser.add_argument("--input_bin", type=str, default=None, help="Path to input .bin voxel")
+parser.add_argument("--output_bin", type=str, default=None, help="Path to output .bin voxel")
+
+# Before trainer.train() or equivalent run loop:
+if args.input_bin is not None:
+    print(f"[INFO] Loading voxel data from {args.input_bin}")
+    voxel_np = load_bin_voxel(args.input_bin)
+    import torch
+    voxel_tensor = torch.from_numpy(voxel_np).unsqueeze(0).cuda() if torch.cuda.is_available() else torch.from_numpy(voxel_np).unsqueeze(0)
+    # Inject into your pipeline as needed, e.g.,
+    # model.initialize_voxel(voxel_tensor)
+
+# After training, before exit:
+if args.output_bin is not None:
+    # Retrieve your output tensor from the model or renderer, for example:
+    output_voxel_tensor = voxel_tensor  # Replace with your generated voxel
+    print(f"[INFO] Saving voxel data to {args.output_bin}")
+    save_bin_voxel(args.output_bin, output_voxel_tensor)
